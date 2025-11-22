@@ -44,7 +44,16 @@ except ImportError:
         return False
 from transformers.testing_utils import CaptureLogger
 from transformers.trainer_utils import get_last_checkpoint
-from transformers.utils import check_min_version, send_example_telemetry
+from transformers.utils import check_min_version
+
+# Handle send_example_telemetry for different transformers versions
+try:
+    from transformers.utils import send_example_telemetry
+except ImportError:
+    # For transformers >= 4.30, this function was removed
+    def send_example_telemetry(*args, **kwargs):
+        pass
+
 from transformers.utils.versions import require_version
 from peft import LoraConfig, get_peft_model, TaskType
 from peft import PeftModel, PeftConfig
@@ -78,7 +87,10 @@ def main():
 
     # Sending telemetry. Tracking the example usage helps us better allocate resources to maintain them. The
     # information sent is the one passed as arguments along with your Python/PyTorch versions.
-    send_example_telemetry("run_llmmt", model_args, data_args)
+    try:
+        send_example_telemetry("run_llmmt", model_args, data_args)
+    except Exception:
+        pass  # Silently skip telemetry if not available
 
     # Setup logging
     logging.basicConfig(

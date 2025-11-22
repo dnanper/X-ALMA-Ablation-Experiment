@@ -138,6 +138,20 @@ class ModelArguments:
             )
         },
     )
+    
+    # Arguments for custom base model loading (ablation study)
+    custom_base_model: Optional[str] = field(
+        default=None,
+        metadata={
+            "help": (
+                "Custom base model path for ablation study. "
+                "When specified, will load this as base model and load model_name_or_path as adapter. "
+                "Example: 'meta-llama/Llama-2-13b-hf' (unpretrained) or 'haoranxu/ALMA-13B-Pretrain' (pretrained). "
+                "This is useful to test contribution of pretrain stage by swapping base models."
+            )
+        },
+    )
+    
     def __post_init__(self):
         if self.config_overrides is not None and (self.config_name is not None or self.model_name_or_path is not None):
             raise ValueError(

@@ -45,7 +45,7 @@ from collections import defaultdict
 from transformers.trainer_callback import TrainerCallback
 from datasets import concatenate_datasets, interleave_datasets
 from utils.trainer_llmmt import LlmmtTrainer
-from utils.utils import LANG_TABLE, load_mmt_dataset, get_preprocessed_data, clean_outputstring, load_a_single_text_file, load_tokenizer, load_model, SavePeftModelCallback, get_key_suffix, NLLB_CODE, ISO1_ISO3_map
+from utils.utils import LANG_TABLE, load_mmt_dataset, get_preprocessed_data, clean_outputstring, load_a_single_text_file, load_tokenizer, load_model, load_model_specific, SavePeftModelCallback, get_key_suffix, NLLB_CODE, ISO1_ISO3_map
 from utils.arguments import ModelArguments, DataTrainingArguments
 from utils.ul2collator import DataCollatorForUL2
 
@@ -250,7 +250,24 @@ def main():
     metric = evaluate.load("sacrebleu")
 
     # Load model
-    model = load_model(data_args, model_args, training_args, tokenizer, logger)
+    # If custom_base_model is specified, use load_model_specific for ablation study
+    if model_args.custom_base_model:
+        logger.info("=" * 80)
+        logger.info("Using custom base model for ablation study")
+        logger.info(f"  Base model: {model_args.custom_base_model}")
+        logger.info(f"  Adapter:    {model_args.model_name_or_path}")
+        logger.info("=" * 80)
+        model = load_model_specific(
+            base_model_path=model_args.custom_base_model,
+            adapter_model_path=model_args.model_name_or_path,
+            model_args=model_args,
+            data_args=data_args,
+            tokenizer=tokenizer,
+            logger=logger,
+        )
+    else:
+        model = load_model(data_args, model_args, training_args, tokenizer, logger)
+    
     collate_fn = DataCollatorForUL2(model, tokenizer) if data_args.use_ul2 else default_data_collator
     
     # Initialize our Trainer

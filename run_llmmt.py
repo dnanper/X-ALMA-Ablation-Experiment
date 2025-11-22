@@ -31,10 +31,17 @@ from transformers import (
     TrainingArguments,
     Seq2SeqTrainingArguments,
     default_data_collator,
-    is_torch_tpu_available,
     set_seed,
     LlamaTokenizer,
 )
+
+# Handle TPU availability for different transformers versions
+try:
+    from transformers import is_torch_tpu_available
+except ImportError:
+    # For transformers >= 4.30, this function was removed
+    def is_torch_tpu_available():
+        return False
 from transformers.testing_utils import CaptureLogger
 from transformers.trainer_utils import get_last_checkpoint
 from transformers.utils import check_min_version, send_example_telemetry
